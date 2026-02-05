@@ -7,17 +7,15 @@
     <tr>
         <th>No</th>
         <th>Nama Area</th>
-        <th>Slot Terpakai</th>
-        <th>Slot Tersisa</th>
+        <th>Kapasitas</th>
     </tr>
     <?php if (count($areas) > 0) : ?>
         <?php foreach ($areas as $i => $area) : ?>
             <tr>
                 <td><?= $i + 1 ?></td>
                 <td><?= esc($area['nama_area']) ?></td>
-                <td><span class="badge bg-warning text-dark"><?= $area['used_slots'] ?? 0 ?></span></td>
                 <td>
-                    <span class="badge bg-info"><?= $area['available_slots'] ?? 0 ?> slot</span>
+                    <span class="badge bg-info"><?= $area['kapasitas'] ?> slot</span>
                 </td>
             </tr>
         <?php endforeach; ?>

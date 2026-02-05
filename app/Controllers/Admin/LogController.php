@@ -20,10 +20,14 @@ class LogController extends BaseController
             return redirect()->to('/login');
         }
 
-        $logs = $this->logModel->findWithUser();
+        $logs = $this->logModel->select('log_aktivitass.*, users.nama as user_nama')
+            ->join('users', 'users.id = log_aktivitass.user_id', 'left')
+            ->orderBy('created_at', 'DESC')
+            ->paginate(10);
 
         $data = [
             'logs' => $logs,
+            'pager' => $this->logModel->pager,
             'title' => 'Log Aktivitas'
         ];
 

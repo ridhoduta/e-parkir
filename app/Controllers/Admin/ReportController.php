@@ -265,7 +265,7 @@ class ReportController extends BaseController
         $csv .= "Periode: " . $tanggal_mulai . " s/d " . $tanggal_akhir . "\n";
         $csv .= "Tanggal Export: " . date('Y-m-d H:i:s') . "\n\n";
 
-        // Laporan Harian
+        // ===== LAPORAN HARIAN =====
         $csv .= "LAPORAN TRANSAKSI HARIAN\n";
         $csv .= "Tanggal," . $laporanHarian['tanggal'] . "\n";
         $csv .= "Total Transaksi," . $laporanHarian['total_transaksi'] . "\n";

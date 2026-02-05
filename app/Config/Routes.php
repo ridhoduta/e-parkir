@@ -92,6 +92,7 @@ $routes->group('admin', function ($routes) {
 
     $routes->get('backup', 'Admin\BackupController::index');
     $routes->get('backup/download', 'Admin\BackupController::download');
+    $routes->post('backup/restore', 'Admin\BackupController::restore');
 
 });
 
@@ -113,4 +114,5 @@ $routes->group('petugas', function ($routes) {
     $routes->get('parkir/pembayaran/(:num)', 'Petugas\ParkirController::pembayaran/$1');
     $routes->post('parkir/proses-pembayaran/(:num)', 'Petugas\ParkirController::prosesPembayaran/$1');
     $routes->get('parkir/struk/(:num)', 'Petugas\ParkirController::struk/$1');
+    $routes->get('parkir/struk-pdf/(:num)', 'Petugas\ParkirController::strukPdf/$1');
 });

@@ -96,7 +96,7 @@
                     </li>
                     <li class="nav-item mb-1">
                         <a class="nav-link" href="<?= base_url('owner/kapasitas') ?>">
-                            <i class="fas fa-map-marker-alt me-2"></i> Daftar Area
+                            <i class="fas fa-chart-pie me-2"></i> Kapasitas Parkir
                         </a>
                     </li>
 

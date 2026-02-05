@@ -22,7 +22,20 @@
     </div>
 </div>
 
-<h5 class="mt-4">Riwayat Transaksi</h5>
+<div class="d-flex justify-content-between align-items-center mt-4 mb-2">
+    <h5>Riwayat Transaksi</h5>
+    <form action="<?= base_url('petugas/parkir') ?>" method="get" class="d-flex">
+        <div class="input-group">
+            <input type="text" name="search" class="form-control" placeholder="Cari Plat Nomor..." value="<?= esc($search ?? '') ?>">
+            <button class="btn btn-outline-primary" type="submit">
+                <i class="fas fa-search"></i> Cari
+            </button>
+            <?php if (!empty($search)) : ?>
+                <a href="<?= base_url('petugas/parkir') ?>" class="btn btn-outline-secondary">Reset</a>
+            <?php endif; ?>
+        </div>
+    </form>
+</div>
 
 <table class="table table-bordered table-hover">
     <tr>

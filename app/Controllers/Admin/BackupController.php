@@ -60,4 +60,56 @@ class BackupController extends BaseController
             ->setHeader('Content-Disposition', 'attachment; filename="' . $filename . '"')
             ->setBody($output);
     }
+
+    public function restore()
+    {
+        if (!session('logged_in') || session('role_id') != 2) {
+            return redirect()->to('/login');
+        }
+
+        $file = $this->request->getFile('backup_file');
+
+        if (!$file->isValid()) {
+            return redirect()->back()->with('error', 'File tidak valid atau tidak ada file yang dipilih.');
+        }
+
+        if ($file->getClientExtension() !== 'sql') {
+            return redirect()->back()->with('error', 'Hanya file .sql yang diperbolehkan.');
+        }
+
+        $sql = file_get_contents($file->getTempName());
+        
+        // Remove comments and empty lines
+        $sql = preg_replace('/--.*?\n/', '', $sql);
+        $sql = preg_replace('/\/\*.*?\*\//s', '', $sql);
+        
+        $queries = explode(";\n", $sql);
+        
+        $db = \Config\Database::connect();
+        $db->transStart();
+        
+        // Disable foreign key checks for restore
+        $db->query("SET FOREIGN_KEY_CHECKS = 0;");
+        
+        $count = 0;
+        foreach ($queries as $query) {
+            $query = trim($query);
+            if (!empty($query)) {
+                $db->query($query);
+                $count++;
+            }
+        }
+        
+        $db->query("SET FOREIGN_KEY_CHECKS = 1;");
+        $db->transComplete();
+
+        if ($db->transStatus() === false) {
+            return redirect()->back()->with('error', 'Gagal memulihkan database. Silakan periksa format file SQL Anda.');
+        }
+
+        helper('log');
+        \save_log('RESTORE_DB', 'Melakukan restore database dari file: ' . $file->getClientName());
+
+        return redirect()->to('/admin/backup')->with('success', 'Database berhasil dipulihkan (' . $count . ' query dijalankan).');
+    }
 }

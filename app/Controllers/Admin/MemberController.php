@@ -33,6 +33,8 @@ class MemberController extends BaseController
         $subQuery = $db->table('members')->select('plat_nomor')->getCompiledSelect();
         
         $kendaraans = (new KendaraanModel())
+            ->select('kendaraans.*, tipe_kendaraans.nama_tipe as tipe_nama')
+            ->join('tipe_kendaraans', 'tipe_kendaraans.id = kendaraans.tipe_kendaraan_id')
             ->where("plat_nomor NOT IN ($subQuery)", null, false)
             ->orderBy('plat_nomor', 'ASC')
             ->findAll();
@@ -76,7 +78,11 @@ class MemberController extends BaseController
             return redirect()->to('/admin/members')->with('error', 'Member tidak ditemukan');
         }
         $types = $this->typeModel->findAll();
-        $kendaraans = (new KendaraanModel())->orderBy('plat_nomor', 'ASC')->findAll();
+        $kendaraans = (new KendaraanModel())
+            ->select('kendaraans.*, tipe_kendaraans.nama_tipe as tipe_nama')
+            ->join('tipe_kendaraans', 'tipe_kendaraans.id = kendaraans.tipe_kendaraan_id')
+            ->orderBy('plat_nomor', 'ASC')
+            ->findAll();
         return view('admin/members/edit', compact('member','types', 'kendaraans'));
     }
 

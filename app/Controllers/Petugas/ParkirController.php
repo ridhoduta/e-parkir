@@ -42,7 +42,15 @@ class ParkirController extends BaseController
             return redirect()->to('/login');
         }
 
-        $transaksi = $this->transaksiModel->findAll();
+        $search = $this->request->getGet('search');
+        
+        $query = $this->transaksiModel->orderBy('waktu_masuk', 'DESC');
+        
+        if ($search) {
+            $query->like('plat_nomor', $search);
+        }
+        
+        $transaksi = $query->findAll();
         
         // Enrich data dengan nama area dan tipe kendaraan
         foreach ($transaksi as &$t) {
@@ -53,7 +61,7 @@ class ParkirController extends BaseController
             $t['tipe_nama'] = $tipe['nama_tipe'] ?? '-';
         }
         
-        return view('petugas/parkir/index', compact('transaksi'));
+        return view('petugas/parkir/index', compact('transaksi', 'search'));
     }
 
     // KENDARAAN MASUK
@@ -447,6 +455,34 @@ class ParkirController extends BaseController
         }
 
         return view('petugas/parkir/struk', compact('transaksi', 'area', 'tipeKendaraan', 'member'));
+    }
+
+    // CETAK STRUK PDF (Standalone)
+    public function strukPdf($id)
+    {
+        if (!session()->get('logged_in')) {
+            return redirect()->to('/login');
+        }
+
+        if (session()->get('role_id') != 3) {
+            return redirect()->to('/login');
+        }
+
+        $transaksi = $this->transaksiModel->find($id);
+
+        if (!$transaksi) {
+            return redirect()->to('/petugas/parkir')->with('error', 'Transaksi tidak ditemukan');
+        }
+
+        $area = $this->areaModel->find($transaksi['area_id']);
+        $tipeKendaraan = $this->tipeKendaraanModel->find($transaksi['tipe_kendaraan_id']);
+
+        $member = null;
+        if (!empty($transaksi['member_id'])) {
+            $member = $this->memberModel->find($transaksi['member_id']);
+        }
+
+        return view('petugas/parkir/struk_pdf', compact('transaksi', 'area', 'tipeKendaraan', 'member'));
     }
 
     /**

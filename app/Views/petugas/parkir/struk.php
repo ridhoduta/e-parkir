@@ -6,9 +6,9 @@
         <a href="<?= base_url('petugas/parkir') ?>" class="btn btn-secondary">
             <i class="fas fa-arrow-left me-2"></i>Kembali
         </a>
-        <button onclick="window.print()" class="btn btn-primary">
-            <i class="fas fa-print me-2"></i>Cetak Struk
-        </button>
+        <a href="<?= base_url('petugas/parkir/struk-pdf/' . $transaksi['id']) ?>" target="_blank" class="btn btn-primary">
+            <i class="fas fa-print me-2"></i>Cetak Struk (PDF)
+        </a>
     </div>
 </div>
 
@@ -103,15 +103,5 @@
         </div>
     </div>
 </div>
-
-<style media="print">
-    body {
-        margin: 0;
-        padding: 0;
-    }
-    .btn, .row:first-child {
-        display: none !important;
-    }
-</style>
 
 <?= $this->endSection() ?>
