@@ -1,0 +1,59 @@
+<!-- View untuk list user yang sudah dihapus -->
+<!-- Path: app/Views/admin/users/trash.php -->
+
+<?= $this->extend('layouts/base') ?>
+
+<?= $this->section('content') ?>
+<div class="container mt-5">
+    <h1><?= $title ?></h1>
+
+    <?php if (session()->has('success')): ?>
+        <div class="alert alert-success">
+            <?= session('success') ?>
+        </div>
+    <?php endif; ?>
+
+    <?php if (empty($deletedUsers)): ?>
+        <div class="alert alert-info">
+            Tidak ada user yang terhapus
+        </div>
+    <?php else: ?>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>No</th>
+                    <th>Username</th>
+                    <th>Nama</th>
+                    <th>Email</th>
+                    <th>Dihapus Pada</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php $no = 1; ?>
+                <?php foreach ($deletedUsers as $user): ?>
+                    <tr>
+                        <td><?= $no++ ?></td>
+                        <td><?= esc($user['username']) ?></td>
+                        <td><?= esc($user['nama']) ?></td>
+                        <td><?= esc($user['email']) ?></td>
+                        <td><?= $user['deleted_at'] ?></td>
+                        <td>
+                            <a href="<?= base_url('admin/users/restore/' . $user['id']) ?>" 
+                               class="btn btn-sm btn-warning"
+                               onclick="return confirm('Kembalikan user ini?')">
+                                Restore
+                            </a>
+                            <a href="<?= base_url('admin/users/destroy/' . $user['id']) ?>" 
+                               class="btn btn-sm btn-danger"
+                               onclick="return confirm('Hapus permanen dari database? Tidak bisa dikembalikan!')">
+                                Hapus Permanen
+                            </a>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    <?php endif; ?>
+</div>
+<?= $this->endSection() ?>
