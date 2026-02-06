@@ -75,9 +75,42 @@
             padding-bottom: 5px;
             margin-top: 30px;
         }
+        .no-print {
+            margin-bottom: 20px;
+            text-align: right;
+        }
+        @media print {
+            .no-print {
+                display: none;
+            }
+            body {
+                margin: 0;
+            }
+        }
+        .btn-print {
+            background-color: #6f4e37;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            text-decoration: none;
+            display: inline-block;
+        }
     </style>
+    <script>
+        window.onload = function() {
+            setTimeout(function() {
+                window.print();
+            }, 500);
+        };
+    </script>
 </head>
 <body>
+    <div class="no-print">
+        <button onclick="window.print()" class="btn-print">Print Laporan</button>
+    </div>
     <div class="header">
         <h1>LAPORAN PARKIR</h1>
         <p>Tanggal: <?= $laporanHarian['tanggal'] ?></p>
@@ -139,6 +172,76 @@
                     </tr>
                 <?php endforeach; ?>
             <?php endif; ?>
+        </tbody>
+    </table>
+
+    <!-- Laporan Rentang Tanggal -->
+    <div style="page-break-before: always;"></div>
+    <h3>LAPORAN RENTANG TANGGAL</h3>
+    <p>Periode: <strong><?= $tanggal_mulai ?></strong> s/d <strong><?= $tanggal_akhir ?></strong></p>
+    
+    <div class="summary-box">
+        <div><strong>Total Transaksi:</strong> <?= $laporanRentang['total_transaksi'] ?></div>
+    </div>
+    <div class="summary-box">
+        <div><strong>Total Pendapatan:</strong> Rp <?= number_format($laporanRentang['total_pendapatan'], 0, ',', '.') ?></div>
+    </div>
+
+    <h4>Trend Per Tanggal</h4>
+    <table>
+        <thead>
+            <tr>
+                <th>Tanggal</th>
+                <th class="text-right">Jumlah Transaksi</th>
+                <th class="text-right">Pendapatan</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php if (empty($laporanRentang['by_tanggal'])) : ?>
+                <tr><td colspan="3" class="text-center">Tidak ada data</td></tr>
+            <?php else : ?>
+                <?php foreach ($laporanRentang['by_tanggal'] as $tgl => $data) : ?>
+                    <tr>
+                        <td><?= date('d-m-Y', strtotime($tgl)) ?></td>
+                        <td class="text-right"><?= $data['count'] ?></td>
+                        <td class="text-right">Rp <?= number_format($data['revenue'], 0, ',', '.') ?></td>
+                    </tr>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        </tbody>
+    </table>
+
+    <!-- Laporan Occupancy -->
+    <div style="page-break-before: always;"></div>
+    <h3>LAPORAN OCCUPANCY (KETERSEDIAAN SLOT)</h3>
+    <div class="summary-box">
+        <div><strong>Total Kapasitas:</strong> <?= $laporanOccupancy['total_kapasitas'] ?> Slot</div>
+    </div>
+    <div class="summary-box">
+        <div><strong>Sedang Dipakai:</strong> <?= $laporanOccupancy['total_dipakai'] ?> Slot (<?= $laporanOccupancy['total_persentase'] ?>%)</div>
+    </div>
+
+    <h4>Occupancy Per Area</h4>
+    <table>
+        <thead>
+            <tr>
+                <th>Nama Area</th>
+                <th class="text-right">Kapasitas Total</th>
+                <th class="text-right">Sedang Parkir</th>
+                <th class="text-right">Sisa Slot</th>
+                <th class="text-right">Persentase</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php foreach ($laporanOccupancy['by_area'] as $area) : ?>
+                <tr>
+                    <td><?= $area['nama_area'] ?></td>
+                    <td class="text-right"><?= $area['kapasitas_total'] ?></td>
+                    <td class="text-right"><strong><?= $area['sedang_parkir'] ?></strong></td>
+                    <td class="text-right"><?= $area['kapasitas_sisa'] ?></td>
+                    <td class="text-right"><?= $area['persentase_penggunaan'] ?>%</td>
+                </tr>
+            <?php endforeach; ?>
         </tbody>
     </table>
 

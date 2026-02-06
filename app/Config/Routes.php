@@ -109,6 +109,7 @@ $routes->group('petugas', function ($routes) {
     $routes->get('parkir/masuk', 'Petugas\ParkirController::masuk');
     $routes->post('parkir/store-masuk', 'Petugas\ParkirController::storeMasuk');
     $routes->get('parkir/tiket/(:any)', 'Petugas\ParkirController::tiket/$1');
+    $routes->get('parkir/tiket-pdf/(:any)', 'Petugas\ParkirController::tiketPdf/$1');
     $routes->get('parkir/keluar', 'Petugas\ParkirController::keluar');
     $routes->post('parkir/proses-keluar', 'Petugas\ParkirController::prosesKeluar');
     $routes->get('parkir/pembayaran/(:num)', 'Petugas\ParkirController::pembayaran/$1');

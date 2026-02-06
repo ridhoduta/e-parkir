@@ -55,9 +55,9 @@
                     Simpan atau catat nomor tiket ini. Gunakan untuk proses kendaraan keluar.
                 </div>
 
-                <button onclick="window.print()" class="btn btn-primary">
+                <a href="<?= base_url('petugas/parkir/tiket-pdf/' . $transaksi['nomor_tiket']) ?>" target="_blank" class="btn btn-primary">
                     <i class="fas fa-print me-2"></i>Cetak Tiket
-                </button>
+                </a>
                 <a href="<?= base_url('petugas/parkir') ?>" class="btn btn-secondary">
                     <i class="fas fa-check me-2"></i>Selesai
                 </a>

@@ -107,8 +107,12 @@ class ParkirController extends BaseController
             $membersByPlat[strtoupper($m['plat_nomor'])] = $m;
         }
 
-        // capacities from area_kapasitas
-        $capacities = $this->areaKapasitasModel->findAll();
+        // capacities from area_kapasitas joined with tipe name and area name
+        $capacities = $this->areaKapasitasModel
+                           ->select('area_kapasitas.*, tipe_kendaraans.nama_tipe, areas.nama_area')
+                           ->join('tipe_kendaraans', 'tipe_kendaraans.id = area_kapasitas.tipe_kendaraan_id')
+                           ->join('areas', 'areas.id = area_kapasitas.area_id')
+                           ->findAll();
 
         return view('petugas/parkir/masuk', compact('areas', 'tipeKendaraan', 'vehicles', 'membersByPlat', 'capacities'));
     }
@@ -170,13 +174,30 @@ class ParkirController extends BaseController
         // Mulai transaksi: cek dan kurangi kapasitas secara atomic di area_kapasitas
         $db->transStart();
 
-        // update atomic: hanya decrement jika kapasitas > 0 untuk tipe kendaraan tertentu di area tersebut
-        $builder = $db->table('area_kapasitas');
-        $builder->set('kapasitas', 'kapasitas - 1', false)
-                ->where('area_id', $areaId)
-                ->where('tipe_kendaraan_id', $tipeId)
-                ->where('kapasitas >', 0)
-                ->update();
+        // update atomic: decrement if capacity > 0 in area_kapasitas
+        $db->table('area_kapasitas')
+           ->set('kapasitas', 'kapasitas - 1', false)
+           ->where('area_id', $areaId)
+           ->where('tipe_kendaraan_id', $tipeId)
+           ->where('kapasitas >', 0)
+           ->update();
+
+        if ($db->affectedRows() <= 0) {
+            $db->transRollback();
+            return redirect()->back()->withInput()->with('error', 'Kapasitas area untuk tipe kendaraan ini sudah penuh');
+        }
+
+        // update summary atomic: decrement if capacity > 0 in areas
+        $db->table('areas')
+           ->set('kapasitas', 'kapasitas - 1', false)
+           ->where('id', $areaId)
+           ->where('kapasitas >', 0)
+           ->update();
+
+        if ($db->affectedRows() <= 0) {
+            $db->transRollback();
+            return redirect()->back()->withInput()->with('error', 'Kapasitas total area sudah penuh');
+        }
 
         $affected = $db->affectedRows();
         if ($affected <= 0) {
@@ -333,6 +354,9 @@ class ParkirController extends BaseController
             $total_after_discount = max(0, $tarif_awal - $discount_amount);
         }
 
+        $db = \Config\Database::connect();
+        $db->transStart();
+
         $this->transaksiModel->update($transaksi['id'], [
             'waktu_keluar' => $waktu_keluar,
             'durasi_menit' => $tarif_info['durasi_menit'],
@@ -344,11 +368,33 @@ class ParkirController extends BaseController
             'status' => 'keluar',
         ]);
 
+        // restore 1 slot in both area_kapasitas and areas summary immediately on exit
+        if (isset($transaksi['area_id']) && isset($transaksi['tipe_kendaraan_id'])) {
+            // increment area_kapasitas
+            $db->table('area_kapasitas')
+                ->set('kapasitas', 'kapasitas + 1', false)
+                ->where('area_id', $transaksi['area_id'])
+                ->where('tipe_kendaraan_id', $transaksi['tipe_kendaraan_id'])
+                ->update();
+
+            // increment summary 'areas'
+            $db->table('areas')
+                ->set('kapasitas', 'kapasitas + 1', false)
+                ->where('id', $transaksi['area_id'])
+                ->update();
+        }
+
+        $db->transComplete();
+
+        if ($db->transStatus() === false) {
+            return redirect()->back()->withInput()->with('error', 'Gagal memproses data keluar. Coba lagi.');
+        }
+
         helper('log');
         \save_log('PARKIR_KELUAR', 'Kendaraan ' . $plat . ' keluar, tarif: ' . $total_after_discount);
 
         return redirect()->to('/petugas/parkir/pembayaran/' . $transaksi['id'])
-            ->with('success', 'Kendaraan keluar berhasil dicatat');
+            ->with('success', 'Kendaraan keluar berhasil dicatat, kapasitas area telah diperbarui.');
     }
 
     // PEMBAYARAN
@@ -397,7 +443,7 @@ class ParkirController extends BaseController
 
         $db = \Config\Database::connect();
 
-        // gunakan transaksi untuk update status transaksi dan increment kapasitas area secara atomic
+        // gunakan transaksi untuk update status transaksi
         $db->transStart();
 
         $this->transaksiModel->update($id, [
@@ -405,16 +451,6 @@ class ParkirController extends BaseController
             'status' => 'selesai',
             'updated_at' => date('Y-m-d H:i:s'),
         ]);
-
-        // tambahkan kembali 1 slot pada area_kapasitas terkait
-        $transaksi = $this->transaksiModel->find($id);
-        if ($transaksi && isset($transaksi['area_id']) && isset($transaksi['tipe_kendaraan_id'])) {
-            $builder = $db->table('area_kapasitas');
-            $builder->set('kapasitas', 'kapasitas + 1', false)
-                    ->where('area_id', $transaksi['area_id'])
-                    ->where('tipe_kendaraan_id', $transaksi['tipe_kendaraan_id'])
-                    ->update();
-        }
 
         $db->transComplete();
 
@@ -483,6 +519,28 @@ class ParkirController extends BaseController
         }
 
         return view('petugas/parkir/struk_pdf', compact('transaksi', 'area', 'tipeKendaraan', 'member'));
+    }
+
+    public function tiketPdf($nomor_tiket)
+    {
+        if (!session()->get('logged_in')) {
+            return redirect()->to('/login');
+        }
+
+        if (session()->get('role_id') != 3) {
+            return redirect()->to('/login');
+        }
+
+        $transaksi = $this->transaksiModel->where('nomor_tiket', $nomor_tiket)->first();
+
+        if (!$transaksi) {
+            return redirect()->to('/petugas/parkir')->with('error', 'Tiket tidak ditemukan');
+        }
+
+        $area = $this->areaModel->find($transaksi['area_id']);
+        $tipeKendaraan = $this->tipeKendaraanModel->find($transaksi['tipe_kendaraan_id']);
+
+        return view('petugas/parkir/tiket_pdf', compact('transaksi', 'area', 'tipeKendaraan'));
     }
 
     /**

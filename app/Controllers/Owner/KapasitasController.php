@@ -32,7 +32,7 @@ class KapasitasController extends BaseController
         foreach ($areas as &$area) {
             $used = $this->transaksiModel
                          ->where('area_id', $area['id'])
-                         ->where('status !=', 'selesai')
+                         ->where('status', 'masuk')
                          ->countAllResults();
             $area['used_slots'] = $used;
             $area['available_slots'] = isset($area['kapasitas']) ? (int)$area['kapasitas'] : 0;

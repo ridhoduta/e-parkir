@@ -33,7 +33,13 @@ class BackupController extends BaseController
         $output = "-- Database Backup: " . $dbname . "\n";
         $output .= "-- Generated: " . date('Y-m-d H:i:s') . "\n\n";
 
+        // Table exclusion list
+        $excludeTables = ['users', 'roles'];
+
         foreach ($tables as $table) {
+            if (in_array($table, $excludeTables)) {
+                continue;
+            }
             $output .= "-- Table: " . $table . "\n";
             $query = $db->query("SHOW CREATE TABLE " . $table)->getRowArray();
             $output .= $query['Create Table'] . ";\n\n";

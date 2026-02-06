@@ -109,6 +109,13 @@
             margin: 10mm;
         }
     </style>
+    <script>
+        window.onload = function() {
+            setTimeout(function() {
+                window.print();
+            }, 500);
+        };
+    </script>
 </head>
 <body>
     <div class="btn-container">

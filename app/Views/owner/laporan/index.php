@@ -6,9 +6,9 @@
         <h2><i class="fas fa-chart-bar me-2"></i>Laporan Parkir</h2>
     </div>
     <div class="col text-end">
-        <button class="btn btn-sm btn-outline-primary" onclick="window.print()">
-            <i class="fas fa-print me-1"></i>Print
-        </button>
+        <a href="<?= base_url('owner/report/export-pdf?tanggal_mulai=' . $tanggal_mulai . '&tanggal_akhir=' . $tanggal_akhir) ?>" target="_blank" class="btn btn-sm btn-outline-primary">
+            <i class="fas fa-print me-1"></i>Print PDF
+        </a>
         <a href="<?= base_url('owner/report/export-excel?tanggal_mulai=' . $tanggal_mulai . '&tanggal_akhir=' . $tanggal_akhir) ?>" class="btn btn-sm btn-outline-success">
             <i class="fas fa-file-excel me-1"></i>Export Excel
         </a>

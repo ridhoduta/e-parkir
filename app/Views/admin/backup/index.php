@@ -28,9 +28,6 @@
                 <?php if (session('success')) : ?>
                     <div class="alert alert-success"><?= session('success') ?></div>
                 <?php endif; ?>
-                <?php if (session('error')) : ?>
-                    <div class="alert alert-danger"><?= session('error') ?></div>
-                <?php endif; ?>
 
                 <p class="text-muted small">Unggah file SQL untuk memulihkan basis data. <br><strong>Peringatan:</strong> Ini akan menimpa data yang ada!</p>
                 <form action="<?= base_url('admin/backup/restore') ?>" method="POST" enctype="multipart/form-data">

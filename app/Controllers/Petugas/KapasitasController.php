@@ -29,14 +29,14 @@ class KapasitasController extends BaseController
 
         $areas = $this->areaModel->findAll();
 
-        // Hitung slot yang saat ini terpakai per area
+        // Hitung slot yang saat ini terpakai per area (hanya yang berstatus 'masuk')
         foreach ($areas as &$area) {
             $used = $this->transaksiModel
                          ->where('area_id', $area['id'])
-                         ->where('status !=', 'selesai')
+                         ->where('status', 'masuk')
                          ->countAllResults();
             $area['used_slots'] = $used;
-            // area[kapasitas] menyimpan slot tersisa (available)
+            // area[kapasitas] menyimpan slot available (yang sudah diupdate decrement saat masuk/increment saat keluar)
             $area['available_slots'] = isset($area['kapasitas']) ? (int)$area['kapasitas'] : 0;
         }
 

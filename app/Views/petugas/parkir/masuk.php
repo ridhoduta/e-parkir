@@ -24,6 +24,38 @@
     </div>
 <?php endif; ?>
 
+<!-- Real-time Capacity Summary -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow-sm border-0 bg-light">
+            <div class="card-body p-3">
+                <h6 class="card-title mb-3 text-muted fw-bold">
+                    <i class="fas fa-info-circle me-1"></i>Kapasitas Tersedia Saat Ini
+                </h6>
+                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-2">
+                    <?php if (isset($capacities) && count($capacities) > 0) : ?>
+                        <?php foreach ($capacities as $cap) : ?>
+                            <div class="col">
+                                <div class="p-2 border rounded bg-white shadow-xs">
+                                    <div class="small fw-bold text-truncate text-primary"><?= esc($cap['nama_area']) ?></div>
+                                    <div class="d-flex justify-content-between align-items-center mt-1">
+                                        <span class="small text-muted"><?= esc($cap['nama_tipe']) ?></span>
+                                        <span class="badge <?= $cap['kapasitas'] <= 0 ? 'bg-danger' : ($cap['kapasitas'] <= 3 ? 'bg-warning text-dark' : 'bg-success') ?>">
+                                            <?= $cap['kapasitas'] ?> slot
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php else : ?>
+                        <div class="col-12 text-muted small italic">Data kapasitas tidak tersedia.</div>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <form method="post" action="<?= base_url('petugas/parkir/store-masuk') ?>" class="col-md-6">
 
     <div class="mb-3">
